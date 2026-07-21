@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { after } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
 import { sendIntakeEmail } from "@/lib/send-intake-email"
 
@@ -38,24 +39,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Fire-and-forget: no bloquear la respuesta al cliente si el mail falla.
-  sendIntakeEmail({
-    client_name: body.client_name,
-    product: body.product,
-    country: body.country,
-    daily_budget: body.daily_budget || "",
-    landing_url: body.landing_url,
-    objective: body.objective,
-    has_google_ads_account: !!body.has_google_ads_account,
-    google_ads_customer_id: body.google_ads_customer_id || "",
-    has_ga4: !!body.has_ga4,
-    has_conversion_tag: !!body.has_conversion_tag,
-    has_meta_business_manager: !!body.has_meta_business_manager,
-    has_meta_pixel: !!body.has_meta_pixel,
-    has_meta_ad_account_linked: !!body.has_meta_ad_account_linked,
-    previous_campaigns_notes: body.previous_campaigns_notes || "",
-    notes: body.notes || "",
-  }).catch((err) => console.error("[api/intake] sendIntakeEmail failed:", err))
+  // No bloquea la respuesta al cliente, pero tampoco se corta a mitad de
+  // camino: after() sigue corriendo aunque la función ya haya respondido
+  // (a diferencia de una promesa suelta sin await, que Vercel puede matar
+  // apenas se manda la respuesta).
+  after(() =>
+    sendIntakeEmail({
+      client_name: body.client_name,
+      product: body.product,
+      country: body.country,
+      daily_budget: body.daily_budget || "",
+      landing_url: body.landing_url,
+      objective: body.objective,
+      has_google_ads_account: !!body.has_google_ads_account,
+      google_ads_customer_id: body.google_ads_customer_id || "",
+      has_ga4: !!body.has_ga4,
+      has_conversion_tag: !!body.has_conversion_tag,
+      has_meta_business_manager: !!body.has_meta_business_manager,
+      has_meta_pixel: !!body.has_meta_pixel,
+      has_meta_ad_account_linked: !!body.has_meta_ad_account_linked,
+      previous_campaigns_notes: body.previous_campaigns_notes || "",
+      notes: body.notes || "",
+    }).catch((err) => console.error("[api/intake] sendIntakeEmail failed:", err)),
+  )
 
   return NextResponse.json({ success: true })
 }
