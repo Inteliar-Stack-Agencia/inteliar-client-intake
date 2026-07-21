@@ -33,6 +33,10 @@ Completar en `.env.local`:
   en el dashboard de Supabase (Project Settings → API).
 - `DASHBOARD_TOKEN` — cualquier string largo random, ej. generado con
   `openssl rand -hex 24`.
+- `RESEND_API_KEY` (opcional) — si se completa, cada envío del formulario
+  manda además una copia por mail a `INTAKE_NOTIFY_EMAIL` (default
+  `inteliarstack.ia@gmail.com`). Sin esta key el formulario funciona igual,
+  solo no se manda el mail.
 
 ```bash
 npm run dev
@@ -43,7 +47,7 @@ npm run dev
 ## Deploy
 
 1. Importar este repo en Vercel.
-2. Cargar las 3 variables de entorno de arriba en Project Settings →
+2. Cargar las variables de entorno de arriba en Project Settings →
    Environment Variables (Production + Preview).
 3. Deploy. La URL que te da Vercel es la que se le manda al cliente.
 
